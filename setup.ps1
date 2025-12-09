@@ -1,103 +1,133 @@
-# Blink Frequency Detection Project - Setup Script
-# Automates virtual environment creation and dependency installation
-# Usage: .\setup.ps1
+# Blink Detection Project Setup Script for Windows
+# Run this script in PowerShell to set up the project
 
-param(
-    [string]$EnvName = "blink",
-    [string]$PythonCmd = "python"
-)
-
-Write-Host "`n$('='*70)" -ForegroundColor Cyan
-Write-Host "Blink Frequency Detection Project - Setup" -ForegroundColor Cyan
-Write-Host "$('='*70)`n" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "Blink Detection Project Setup" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
 
 # Check Python installation
-Write-Host "[1/4] Checking Python installation..." -ForegroundColor Yellow
+Write-Host "Checking Python installation..." -ForegroundColor Yellow
 try {
-    $pythonVersion = & $PythonCmd --version 2>&1
-    Write-Host "✓ Found: $pythonVersion" -ForegroundColor Green
+    $pythonVersion = python --version 2>&1
+    Write-Host "[OK] Python found: $pythonVersion" -ForegroundColor Green
 } catch {
-    Write-Host "✗ Python not found. Please install Python 3.8+" -ForegroundColor Red
-    Write-Host "   Download: https://www.python.org/downloads/" -ForegroundColor Red
+    Write-Host "[ERROR] Python not found. Please install Python 3.8 or higher." -ForegroundColor Red
+    Write-Host "Download from: https://www.python.org/downloads/" -ForegroundColor Yellow
     exit 1
 }
 
-# Create virtual environment
-Write-Host "`n[2/4] Creating virtual environment '$EnvName'..." -ForegroundColor Yellow
-if (Test-Path "$EnvName") {
-    Write-Host "✓ Virtual environment already exists" -ForegroundColor Green
+# Check if virtual environment exists
+Write-Host ""
+Write-Host "Checking virtual environment..." -ForegroundColor Yellow
+if (Test-Path "venv") {
+    Write-Host "[OK] Virtual environment already exists" -ForegroundColor Green
 } else {
-    try {
-        & $PythonCmd -m venv $EnvName
-        Write-Host "✓ Virtual environment created" -ForegroundColor Green
-    } catch {
-        Write-Host "✗ Failed to create virtual environment" -ForegroundColor Red
+    Write-Host "Creating virtual environment..." -ForegroundColor Yellow
+    python -m venv venv
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "[OK] Virtual environment created" -ForegroundColor Green
+    } else {
+        Write-Host "[ERROR] Failed to create virtual environment" -ForegroundColor Red
         exit 1
     }
 }
 
 # Activate virtual environment
-Write-Host "`n[3/4] Activating virtual environment..." -ForegroundColor Yellow
-$activateScript = ".\$EnvName\Scripts\Activate.ps1"
-if (-not (Test-Path $activateScript)) {
-    Write-Host "✗ Activation script not found at $activateScript" -ForegroundColor Red
-    exit 1
-}
+Write-Host ""
+Write-Host "Activating virtual environment..." -ForegroundColor Yellow
+$activateScript = ".\venv\Scripts\Activate.ps1"
 
-try {
+if (Test-Path $activateScript) {
     & $activateScript
-    Write-Host "✓ Virtual environment activated" -ForegroundColor Green
-} catch {
-    Write-Host "✗ Failed to activate virtual environment" -ForegroundColor Red
-    Write-Host "   Try running: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass" -ForegroundColor Red
+    Write-Host "[OK] Virtual environment activated" -ForegroundColor Green
+} else {
+    Write-Host "[ERROR] Activation script not found" -ForegroundColor Red
     exit 1
 }
 
-# Install dependencies
-Write-Host "`n[4/4] Installing dependencies from requirements.txt..." -ForegroundColor Yellow
-if (-not (Test-Path "requirements.txt")) {
-    Write-Host "✗ requirements.txt not found in current directory" -ForegroundColor Red
-    exit 1
+# Upgrade pip
+Write-Host ""
+Write-Host "Upgrading pip..." -ForegroundColor Yellow
+python -m pip install --upgrade pip | Out-Null
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "[OK] Pip upgraded" -ForegroundColor Green
+} else {
+    Write-Host "[WARNING] Failed to upgrade pip (continuing anyway)" -ForegroundColor Yellow
 }
 
-try {
-    # Upgrade pip, setuptools, wheel
-    Write-Host "  - Upgrading pip, setuptools, wheel..." -ForegroundColor Cyan
-    & python -m pip install --upgrade pip setuptools wheel | Out-Null
-    
-    # Install requirements
-    Write-Host "  - Installing packages from requirements.txt..." -ForegroundColor Cyan
-    & pip install -r requirements.txt
-    
-    Write-Host "`n✓ Dependencies installed successfully" -ForegroundColor Green
-} catch {
-    Write-Host "✗ Failed to install dependencies" -ForegroundColor Red
-    exit 1
+# Install required packages
+Write-Host ""
+Write-Host "Installing required packages..." -ForegroundColor Yellow
+Write-Host "This may take a few minutes..." -ForegroundColor Cyan
+
+$packages = @(
+    "opencv-python",
+    "mediapipe",
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "python-docx",
+    "openpyxl"
+)
+
+$failed = @()
+foreach ($package in $packages) {
+    Write-Host "  Installing $package..." -ForegroundColor Gray
+    python -m pip install $package --quiet
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "  [OK] $package installed" -ForegroundColor Green
+    } else {
+        Write-Host "  [ERROR] Failed to install $package" -ForegroundColor Red
+        $failed += $package
+    }
 }
 
-# Verify installation
-Write-Host "`n[VERIFY] Testing imports..." -ForegroundColor Yellow
-try {
-    & python -c "import cv2, mediapipe, pandas, scipy, matplotlib; print('All packages imported successfully!')" 2>&1
-    Write-Host "✓ All imports successful" -ForegroundColor Green
-} catch {
-    Write-Host "✗ Import verification failed" -ForegroundColor Red
-    exit 1
+# Check installation results
+Write-Host ""
+if ($failed.Count -eq 0) {
+    Write-Host "========================================" -ForegroundColor Green
+    Write-Host "[SUCCESS] All packages installed!" -ForegroundColor Green
+    Write-Host "========================================" -ForegroundColor Green
+} else {
+    Write-Host "========================================" -ForegroundColor Yellow
+    Write-Host "[WARNING] Some packages failed to install:" -ForegroundColor Yellow
+    foreach ($pkg in $failed) {
+        Write-Host "  - $pkg" -ForegroundColor Red
+    }
+    Write-Host "========================================" -ForegroundColor Yellow
 }
 
-# Final message
-Write-Host "`n$('='*70)" -ForegroundColor Cyan
+# Create results directory
+Write-Host ""
+Write-Host "Creating output directories..." -ForegroundColor Yellow
+if (-not (Test-Path "results")) {
+    New-Item -ItemType Directory -Path "results" | Out-Null
+    Write-Host "[OK] Created results/ directory" -ForegroundColor Green
+} else {
+    Write-Host "[OK] results/ directory already exists" -ForegroundColor Green
+}
+
+# List installed packages
+Write-Host ""
+Write-Host "Installed packages:" -ForegroundColor Cyan
+python -m pip list
+
+# Final instructions
+Write-Host ""
+Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Setup Complete!" -ForegroundColor Cyan
-Write-Host "$('='*70)`n" -ForegroundColor Cyan
-
-Write-Host "Next steps:" -ForegroundColor Yellow
-Write-Host "  1. Activate virtual environment (if not active):"
-Write-Host "     .\$EnvName\Scripts\Activate.ps1" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  2. Run the workflow:"
-Write-Host "     python blink_workflow.py --video blink_data.mp4 --ir-data IR_data.csv" -ForegroundColor Cyan
+Write-Host "To run the blink detection workflow:" -ForegroundColor Yellow
+Write-Host "  1. Make sure virtual environment is activated:" -ForegroundColor White
+Write-Host "     .\venv\Scripts\Activate.ps1" -ForegroundColor Gray
 Write-Host ""
-Write-Host "  3. Check results in the 'results/' directory" -ForegroundColor Yellow
+Write-Host "  2. Run the workflow:" -ForegroundColor White
+Write-Host "     python blink_workflow_fixed.py --video input.mp4 --ir-data ir_data.csv" -ForegroundColor Gray
 Write-Host ""
-Write-Host "For help: python blink_workflow.py --help" -ForegroundColor Yellow
-Write-Host "`n"
+Write-Host "  3. View results in the results/ folder" -ForegroundColor White
+Write-Host ""
+Write-Host "For help, run:" -ForegroundColor Yellow
+Write-Host "  python blink_workflow_fixed.py --help" -ForegroundColor Gray
+Write-Host ""

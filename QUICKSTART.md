@@ -22,12 +22,12 @@ This will:
 
 ### 3. Prepare Your Data
 You need:
-- **Video file** (e.g., `screen_session.mp4`)
+- **Video file** (e.g., `blink_data.mp4`)
   - Formats: MP4, AVI, MOV, WebM
   - Quality: 720p+ recommended
   - Duration: 1–30 minutes typical
   
-- **IR Data CSV** (e.g., `ir_baseline.csv`)
+- **IR Data CSV** (e.g., `IR_data.csv`)
   - Columns: `Timestamp` or `Time`, and blink signal (0=open, 1=closed)
   - Format: CSV with headers
   - Sample rate: 30+ Hz recommended
@@ -48,7 +48,7 @@ Timestamp,Blink_Indicator
 .\blink\Scripts\Activate.ps1
 
 # Run workflow
-python blink_workflow_fixed.py `
+python blink_workflow.py `
   --video "path\to\your\video.mp4" `
   --ir-data "path\to\your\ir_data.csv" `
   --output-dir results
