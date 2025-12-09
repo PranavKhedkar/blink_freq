@@ -38,7 +38,7 @@ Blink Freq Project/
 ### Quick Setup (Automated - Windows)
 
 ```powershell
-cd 'D:\Blink Freq Project' OR the directory which the folder is located.
+cd 'D:\Blink Freq Project' #OR the directory in which the folder is located.
 .\setup.ps1
 ```
 
