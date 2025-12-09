@@ -95,9 +95,9 @@ Write-Host "  1. Activate virtual environment (if not active):"
 Write-Host "     .\$EnvName\Scripts\Activate.ps1" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  2. Run the workflow:"
-Write-Host "     python blink_workflow_fixed.py --video <video_path> --ir-data <ir_csv_path>" -ForegroundColor Cyan
+Write-Host "     python blink_workflow.py --video blink_data.mp4 --ir-data IR_data.csv" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  3. Check results in the 'results/' directory" -ForegroundColor Yellow
 Write-Host ""
-Write-Host "For help: python blink_workflow_fixed.py --help" -ForegroundColor Yellow
+Write-Host "For help: python blink_workflow.py --help" -ForegroundColor Yellow
 Write-Host "`n"
